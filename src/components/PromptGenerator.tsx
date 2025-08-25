@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { promptHistoryService, type PromptHistoryItem } from '../services/promptHistory'
+import { promptHistoryService, type PromptHistoryItem } from '../services/promptHistory.ts'
 
 const PromptGenerator: React.FC = () => {
   const [ideaText, setIdeaText] = useState('')
