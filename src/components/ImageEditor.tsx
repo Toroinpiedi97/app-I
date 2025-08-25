@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useContext, useEffect } from 'react'
+import { PromptContext } from '../context/PromptContext.tsx'
 
 const ImageEditor: React.FC = () => {
   const [image, setImage] = useState<{ src: string | null; width: number; height: number }>({
@@ -15,6 +16,14 @@ const ImageEditor: React.FC = () => {
     opacity: 0.6
   })
   const [promptInUse, setPromptInUse] = useState('')
+  const { currentPrompt, clearPrompt } = useContext(PromptContext)
+
+  useEffect(() => {
+    if (currentPrompt && !promptInUse) {
+      setPromptInUse(currentPrompt)
+      // Do not clear immediately to allow history/other components to reference it if needed
+    }
+  }, [currentPrompt])
 
   const [loading, setLoading] = useState(false)
   
@@ -92,7 +101,7 @@ const ImageEditor: React.FC = () => {
     setImage({ src: null, width: 0, height: 0 })
     setMask({ src: null, width: 0, height: 0, mode: 'paint-white-to-edit', brushSize: 32, opacity: 0.6 })
     setPromptInUse('')
-
+    clearPrompt()
   }
 
   return (

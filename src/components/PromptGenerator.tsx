@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { promptHistoryService, type PromptHistoryItem } from '../services/promptHistory.ts'
+import { formatTimestampShort } from '../utils/datetime.ts'
+import { PromptContext } from '../context/PromptContext.tsx'
 
 const PromptGenerator: React.FC = () => {
   const [ideaText, setIdeaText] = useState('')
@@ -9,6 +11,7 @@ const PromptGenerator: React.FC = () => {
   const [success, setSuccess] = useState(false)
   const [history, setHistory] = useState<PromptHistoryItem[]>([])
   const [showHistory, setShowHistory] = useState(false)
+  const { setCurrentPrompt } = useContext(PromptContext)
 
   // Load prompt history on component mount
   useEffect(() => {
@@ -61,8 +64,8 @@ const PromptGenerator: React.FC = () => {
   }
 
   const handleUsePrompt = () => {
-    // TODO: Send prompt to Image Editor column
-    console.log('Using prompt:', optimizedPrompt)
+    if (!optimizedPrompt) return
+    setCurrentPrompt(optimizedPrompt)
     setSuccess(true)
   }
 
@@ -79,14 +82,7 @@ const PromptGenerator: React.FC = () => {
     loadHistory()
   }
 
-  const formatTimestamp = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      month: 'short',
-      day: 'numeric'
-    }).format(date)
-  }
+  const formatTimestamp = (date: Date) => formatTimestampShort(date)
 
   return (
     <div className="h-full flex flex-col p-4">
