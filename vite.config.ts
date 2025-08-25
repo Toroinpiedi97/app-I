@@ -1,8 +1,22 @@
-import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
-});
+  plugins: [react()],
+  base: './',
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      input: resolve(__dirname, 'index.html'),
+      output: {
+        entryFileNames: 'renderer.js',
+        chunkFileNames: '[name].js',
+        assetFileNames: '[name].[ext]'
+      }
+    }
+  },
+  server: {
+    port: 5173
+  }
+})

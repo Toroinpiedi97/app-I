@@ -1,30 +1,74 @@
 {
-  "name": "app-i",
+  "name": "aidesktop-image-suite",
+  "version": "0.1.0",
+  "description": "AI Desktop Image Editor with 3-column layout: Prompt Generator, Image Editor, AI Commentator",
+  "main": "dist/main.js",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
-    "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
+    "dev": "vite",
+    "build": "vite build",
+    "build:main": "node build-main.cjs",
+    "build:all": "npm run build:main && npm run build",
+    "preview": "vite preview",
+    "electron": "electron .",
+    "electron:dev": "npm run build:main && concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build:all && electron-builder",
+    "dist": "npm run build:all && electron-builder --publish=never"
   },
   "dependencies": {
-    "@react-router/node": "^7.7.1",
-    "@react-router/serve": "^7.7.1",
-    "isbot": "^5.1.27",
+    "@types/node-fetch": "^2.6.13",
+    "electron": "^30.0.0",
+    "electron-builder": "^25.0.0",
+    "konva": "^9.3.0",
+    "node-fetch": "^3.3.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router": "^7.7.1"
+    "react-konva": "^18.2.10",
+    "react-resizable-panels": "^2.0.0"
   },
   "devDependencies": {
-    "@react-router/dev": "^7.7.1",
-    "@tailwindcss/vite": "^4.1.4",
-    "@types/node": "^20",
+    "@types/electron": "^1.6.10",
+    "@types/node": "^20.19.11",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^5.0.1",
+    "concurrently": "^8.2.2",
+    "electron-is-dev": "^2.0.0",
+    "esbuild": "^0.25.9",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
-    "vite-tsconfig-paths": "^5.1.4"
-  }
+    "vite-tsconfig-paths": "^5.1.4",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.aidesktop.imagesuite",
+    "productName": "AIDesktop Image Suite",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.graphics-design"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "keywords": [
+    "electron",
+    "react",
+    "ai",
+    "image-editing",
+    "inpainting"
+  ],
+  "author": "",
+  "license": "ISC"
 }
