@@ -6,7 +6,7 @@ import isDev from "electron-is-dev";
 // src/config/env.ts
 var config = {
   // Hugging Face API Configuration
-  HF_API_KEY: process.env.HF_API_KEY || "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",
+  HF_API_KEY: process.env.HF_API_KEY || "",
   HF_PROMPT_MODEL: process.env.HF_PROMPT_MODEL || "google/flan-t5-base",
   HF_INPAINT_MODEL: process.env.HF_INPAINT_MODEL || "stabilityai/stable-diffusion-2-inpainting",
   HF_COMMENT_MODEL: process.env.HF_COMMENT_MODEL || "tiiuae/falcon-7b-instruct",
