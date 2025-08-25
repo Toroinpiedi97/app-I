@@ -1,0 +1,22 @@
+{
+  "appId": "com.toroinpiedi97.appI",
+  "productName": "AppI",
+  "directories": {
+    "output": "dist_electron"
+  },
+  "files": [
+    "dist/**/*",
+    "public/**/*",
+    "app/**/*",
+    "index.html",
+    "package.json"
+  ],
+  "win": {
+  "target": "nsis"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": true,
+    "allowToChangeInstallationDirectory": true
+  }
+}

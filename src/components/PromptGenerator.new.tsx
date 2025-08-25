@@ -1,22 +1,9 @@
-import { type FC, useCallback } from 'react';
-import { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { promptHistoryService } from '../services/promptHistory.ts';
 import { formatTimestampShort } from '../utils/datetime.ts';
 import { PromptContext } from '../context/PromptContext.tsx';
 
-interface PromptOptimizeResponse {
-  optimizedPrompt: string;
-}
-
-declare global {
-  interface Window {
-    electronAPI: {
-      send: (channel: string, data: any) => void;
-      receive: (channel: string, func: Function) => void;
-      promptOptimize: (data: { prompt: string; maxTokens?: number }) => Promise<PromptOptimizeResponse>;
-    };
-  }
-}interface PromptHistoryItem {
+interface PromptHistoryItem {
   id: string;
   timestamp: Date;
   rawPrompt: string;
@@ -24,17 +11,14 @@ declare global {
   used?: boolean;
 }
 
-const PromptGenerator: FC = () => {
-  // Stato del componente
+const PromptGenerator = () => {
   const [ideaText, setIdeaText] = useState('');
   const [optimizedPrompt, setOptimizedPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [history, setHistory] = useState<PromptHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const { setCurrentPrompt } = useContext(PromptContext);
 
   useEffect(() => {
@@ -51,110 +35,52 @@ const PromptGenerator: FC = () => {
     }
   }, [success, error]);
 
-  const loadHistory = useCallback(async () => {
-    try {
-      setLoadingHistory(true);
-      setHistory(promptHistoryService.getRecentHistory(10));
-    } catch (err) {
-      console.error('Error loading history:', err);
-      setError('Failed to load prompt history');
-    } finally {
-      setLoadingHistory(false);
-    }
-  }, []);
+  const loadHistory = () => {
+    setHistory(promptHistoryService.getRecentHistory(10));
+  };
 
   const handleGeneratePrompt = async () => {
-    if (isGenerating) {
-      return; // Previene richieste multiple
-    }
-
-    const trimmedText = ideaText.trim();
-    
-    if (!trimmedText) {
+    if (!ideaText.trim()) {
       setError('Please enter an idea first');
       return;
     }
     
-    if (trimmedText.length < 3) {
-      setError('Idea must be at least 3 characters long');
-      return;
-    }
-
-    if (!window.electronAPI?.promptOptimize) {
-      setError('Prompt generation is not available');
-      return;
-    }
-    
-    setIsGenerating(true);
     setLoading(true);
     setError(null);
     setSuccess(false);
-    setOptimizedPrompt('');
     
     try {
       const result = await window.electronAPI.promptOptimize({
-        prompt: trimmedText,
-        maxTokens: 100,
-      });      if (!result?.optimizedPrompt) {
-        throw new Error('Invalid response from API');
-      }
+        prompt: ideaText.trim()
+      });
       
       setOptimizedPrompt(result.optimizedPrompt);
-      setCurrentPrompt(result.optimizedPrompt);
       setSuccess(true);
-      
-      try {
-        await promptHistoryService.addPrompt(trimmedText, result.optimizedPrompt);
-        loadHistory();
-      } catch (historyError) {
-        console.error('History save error:', historyError);
-        // Non mostriamo l'errore all'utente perché il prompt è stato comunque generato
-      }
+      promptHistoryService.addPrompt(ideaText.trim(), result.optimizedPrompt);
+      loadHistory();
     } catch (error) {
       console.error('Error generating prompt:', error);
       setError(error instanceof Error ? error.message : 'Could not generate prompt');
+      setOptimizedPrompt('');
     } finally {
       setLoading(false);
-      setIsGenerating(false);
     }
   };
 
   const copyToClipboard = async (text: string) => {
-    if (!text) {
-      setError('No text to copy');
-      return;
-    }
-
     try {
       await navigator.clipboard.writeText(text);
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
     } catch (err) {
-      console.error('Copy to clipboard error:', err);
       setError('Failed to copy to clipboard');
     }
   };
 
   const handleHistoryItemClick = (item: PromptHistoryItem) => {
-    if (!item?.optimizedPrompt || !item?.rawPrompt) {
-      setError('Invalid history item');
-      return;
-    }
-
-    try {
-      setOptimizedPrompt(item.optimizedPrompt);
-      setIdeaText(item.rawPrompt);
-      setCurrentPrompt(item.optimizedPrompt);
-      if (item.id) {
-        promptHistoryService.markAsUsed(item.id);
-        loadHistory();
-      }
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
-    } catch (err) {
-      console.error('History item error:', err);
-      setError('Failed to load history item');
-    }
+    setOptimizedPrompt(item.optimizedPrompt);
+    setIdeaText(item.rawPrompt);
+    promptHistoryService.markAsUsed(item.id);
+    loadHistory();
   };
 
   return (
@@ -252,22 +178,9 @@ const PromptGenerator: FC = () => {
             </button>
           </div>
 
-          {showHistory && (
+          {showHistory && history.length > 0 && (
             <div className="space-y-2">
-              {loadingHistory ? (
-                <div className="text-center py-4 text-secondary-400">
-                  <svg className="animate-spin h-5 w-5 mx-auto mb-2" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Loading history...
-                </div>
-              ) : history.length === 0 ? (
-                <div className="text-center py-4 text-secondary-400">
-                  No history yet
-                </div>
-              ) : (
-                history.map((item) => (
+              {history.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => handleHistoryItemClick(item)}
@@ -278,8 +191,7 @@ const PromptGenerator: FC = () => {
                   </div>
                   <div className="text-sm text-secondary-200">{item.rawPrompt}</div>
                 </div>
-                ))
-              )}
+              ))}
             </div>
           )}
         </div>
