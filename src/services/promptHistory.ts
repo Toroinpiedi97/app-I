@@ -9,6 +9,34 @@ export interface PromptHistoryItem {
 class PromptHistoryService {
   private history: PromptHistoryItem[] = []
   private maxItems = 50
+  private storageKey = 'aiDesktop.promptHistory'
+
+  constructor() {
+    this.hydrateFromStorage()
+  }
+
+  private saveToStorage(): void {
+    try {
+      const serialized = JSON.stringify(this.history)
+      window?.localStorage?.setItem(this.storageKey, serialized)
+    } catch {
+      // ignore
+    }
+  }
+
+  private hydrateFromStorage(): void {
+    try {
+      const raw = window?.localStorage?.getItem(this.storageKey)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as Array<Omit<PromptHistoryItem, 'timestamp'> & { timestamp: string }>
+      this.history = parsed.map(item => ({
+        ...item,
+        timestamp: new Date(item.timestamp)
+      }))
+    } catch {
+      this.history = []
+    }
+  }
 
   /**
    * Add a new prompt to history
@@ -29,6 +57,7 @@ class PromptHistoryService {
       this.history = this.history.slice(0, this.maxItems)
     }
 
+    this.saveToStorage()
     return item
   }
 
@@ -39,6 +68,7 @@ class PromptHistoryService {
     const item = this.history.find(h => h.id === id)
     if (item) {
       item.used = true
+      this.saveToStorage()
       return true
     }
     return false
@@ -76,6 +106,7 @@ class PromptHistoryService {
    */
   clearHistory(): void {
     this.history = []
+    this.saveToStorage()
   }
 
   /**
@@ -85,6 +116,7 @@ class PromptHistoryService {
     const index = this.history.findIndex(h => h.id === id)
     if (index >= 0) {
       this.history.splice(index, 1)
+      this.saveToStorage()
       return true
     }
     return false

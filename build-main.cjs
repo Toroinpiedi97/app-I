@@ -21,6 +21,22 @@ async function buildMain() {
     })
     console.log('✅ Main process built successfully')
 
+    // Build preload script (CommonJS for Electron preload)
+    await build({
+      entryPoints: ['src/preload.ts'],
+      bundle: true,
+      platform: 'node',
+      target: 'node18',
+      outfile: 'dist/preload.js',
+      external: ['electron'],
+      format: 'cjs',
+      sourcemap: true,
+      minify: false,
+      nodePaths: ['node_modules'],
+      packages: 'external'
+    })
+    console.log('✅ Preload script built successfully')
+
   } catch (error) {
     console.error('❌ Build failed:', error)
     process.exit(1)

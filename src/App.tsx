@@ -2,6 +2,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import PromptGenerator from './components/PromptGenerator.tsx'
 import ImageEditor from './components/ImageEditor.tsx'
 import AICommentator from './components/AICommentator.tsx'
+import { appInfo } from './config/app.ts'
 
 function App() {
   return (
@@ -9,11 +10,9 @@ function App() {
       {/* Header */}
       <header className="bg-slate-800/80 border-b border-slate-700 backdrop-blur px-6 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-primary-400">
-            AIDesktop Image Suite
-          </h1>
+          <h1 className="text-2xl font-bold text-primary-400">{appInfo.name}</h1>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-slate-400">v0.1.0</span>
+            <span className="text-sm text-slate-400">v{appInfo.version}</span>
             <button className="btn-secondary text-sm">
               Settings
             </button>
